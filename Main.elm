@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, text, h1, pre)
+import Html exposing (Html, div, text, h1, pre, dl, dt, dd)
+import Html.Attributes exposing (class)
 
 
 --import Date exposing (Date)
@@ -38,6 +39,10 @@ type alias SatelliteInfo =
     , items : List SightingOpportunity
     , expiresAt : Int
     }
+
+
+type alias SightingDayInfo =
+    ( String, List SightingOpportunity )
 
 
 type alias Model =
@@ -84,6 +89,25 @@ getSatelliteInfo url =
         Http.send LoadInfo (Http.get url satelliteInfoDecoder)
 
 
+sortOpportunitiesByDay : List SightingOpportunity -> List SightingDayInfo
+sortOpportunitiesByDay opportunities =
+    let
+        forDate date =
+            List.filter (\o -> o.date == date) opportunities
+
+        appendUnique : String -> List String -> List String
+        appendUnique date list =
+            if List.member date list then
+                list
+            else
+                date :: list
+    in
+        opportunities
+            |> List.map .date
+            |> List.foldr appendUnique []
+            |> List.map (\date -> ( date, forDate date ))
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -106,32 +130,48 @@ update msg model =
 
 mainView : Model -> Html Msg
 mainView model =
-    div []
-        [ h1 [] [ text "Erie ISS Sightings" ]
-        , pre [] [ text (toString model) ]
-        , div [] [ satelliteInfoView model.satelliteInfo ]
-        ]
+    div [] [ satelliteInfoView model.satelliteInfo ]
 
 
 satelliteInfoView : Maybe SatelliteInfo -> Html msg
 satelliteInfoView satelliteInfo =
     case satelliteInfo of
         Just satelliteInfo ->
-            div [] (List.map opportunityView satelliteInfo.items)
+            let
+                groupedOpps =
+                    sortOpportunitiesByDay satelliteInfo.items
+            in
+                div [] (List.map sightingDayView groupedOpps)
 
         Nothing ->
             text ""
 
 
+sightingDayView : SightingDayInfo -> Html msg
+sightingDayView ( date, opportunities ) =
+    div [ class "sighting-day" ]
+        [ h1 [] [ text date ]
+        , div
+            [ class "opportunities" ]
+            (List.map opportunityView opportunities)
+        ]
+
+
 opportunityView : SightingOpportunity -> Html msg
 opportunityView opportunity =
-    div []
-        [ h1 [] [ text opportunity.date ]
-        , div [] [ text opportunity.time ]
-        , div [] [ text opportunity.duration ]
-        , div [] [ text opportunity.maximumElevation ]
-        , div [] [ text opportunity.approach ]
-        , div [] [ text opportunity.departure ]
+    div [ class "opportunity" ]
+        [ dl []
+            [ dt [] [ text "Start Time" ]
+            , dd [] [ text opportunity.time ]
+            , dt [] [ text "Duration" ]
+            , dd [] [ text opportunity.duration ]
+            , dt [] [ text "Maximum Elevation" ]
+            , dd [] [ text opportunity.maximumElevation ]
+            , dt [] [ text "Approach" ]
+            , dd [] [ text opportunity.approach ]
+            , dt [] [ text "Departure" ]
+            , dd [] [ text opportunity.departure ]
+            ]
         ]
 
 

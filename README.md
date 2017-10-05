@@ -1,6 +1,6 @@
 # ISS Tracker Front End in Elm
 
-This repo acts as a frontend for my ISS tracking webtask based off of data from NASA's SpotTheStation site.
+This repo acts as a frontend for my ISS tracking Webtask based off of data from NASA's SpotTheStation site.
 
 ## Installation
 - Requires Elm 0.18

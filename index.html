@@ -29,13 +29,35 @@
 
   <script type="text/javascript" src="/elm.js"></script>
   <script type="text/javascript">
-    const state = localStorage.getItem('state');
-    const root = document.getElementById('app');
-    const app = Elm.Main.embed(root, state && JSON.parse(state));
+    const now = new Date();
+    const key = 'savedState';
 
-    app.ports.store.subscribe(function(state) {
-      localStorage.setItem('state', JSON.stringify(state));
-    });
+    const saveState = (state) => {
+      const expiresAt = new Date().setDate(now.getDate()+1);
+
+      localStorage.setItem(key, JSON.stringify({ expiresAt, state }));
+    };
+
+    const loadState = () => {
+      const rawState = localStorage.getItem(key);
+      const savedState = rawState && JSON.parse(rawState);
+
+      if (savedState) {
+        if (!savedState.expiresAt || now.getTime() > savedState.expiresAt) {
+          // Bust cache
+          localStorage.removeItem(key);
+        } else {
+          return savedState.state;
+        }
+      }
+
+      return null;
+    };
+
+    const root = document.getElementById('app');
+    const app = Elm.Main.embed(root, loadState());
+
+    app.ports.store.subscribe(saveState);
   </script>
 </body>
 </html>

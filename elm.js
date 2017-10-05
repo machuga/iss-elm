@@ -8929,120 +8929,50 @@ var _user$project$Main$opportunityView = function (opportunity) {
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$dl,
+				_elm_lang$html$Html$h2,
 				{ctor: '[]'},
 				{
 					ctor: '::',
+					_0: _elm_lang$html$Html$text(opportunity.time),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'For ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									opportunity.duration,
+									A2(_elm_lang$core$Basics_ops['++'], ' peaking at ', opportunity.maximumElevation)))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$dt,
+						_elm_lang$html$Html$p,
 						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Start Time'),
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'From ',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										opportunity.approach,
+										A2(_elm_lang$core$Basics_ops['++'], ' till ', opportunity.departure)))),
 							_1: {ctor: '[]'}
 						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$dd,
-							{ctor: '[]'},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(opportunity.time),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$dt,
-								{ctor: '[]'},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text('Duration'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$dd,
-									{ctor: '[]'},
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(opportunity.duration),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$dt,
-										{ctor: '[]'},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text('Maximum Elevation'),
-											_1: {ctor: '[]'}
-										}),
-									_1: {
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$dd,
-											{ctor: '[]'},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text(opportunity.maximumElevation),
-												_1: {ctor: '[]'}
-											}),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$dt,
-												{ctor: '[]'},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text('Approach'),
-													_1: {ctor: '[]'}
-												}),
-											_1: {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$dd,
-													{ctor: '[]'},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(opportunity.approach),
-														_1: {ctor: '[]'}
-													}),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$dt,
-														{ctor: '[]'},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text('Departure'),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$dd,
-															{ctor: '[]'},
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html$text(opportunity.departure),
-																_1: {ctor: '[]'}
-															}),
-														_1: {ctor: '[]'}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}),
-			_1: {ctor: '[]'}
+					_1: {ctor: '[]'}
+				}
+			}
 		});
 };
 var _user$project$Main$sightingDayView = function (_p0) {
@@ -9135,6 +9065,19 @@ var _user$project$Main$mainView = function (model) {
 };
 var _user$project$Main$initialModel = {state: '', satelliteInfo: _elm_lang$core$Maybe$Nothing};
 var _user$project$Main$webtaskUrl = 'https://wt-8f9f6a577da77a9add9cadbb90e66b75-0.run.webtask.io/iss-tracker';
+var _user$project$Main$store = _elm_lang$core$Native_Platform.outgoingPort(
+	'store',
+	function (v) {
+		return {
+			url: v.url,
+			description: v.description,
+			items: _elm_lang$core$Native_List.toArray(v.items).map(
+				function (v) {
+					return {title: v.title, description: v.description, date: v.date, time: v.time, duration: v.duration, maximumElevation: v.maximumElevation, approach: v.approach, departure: v.departure};
+				}),
+			expiresAt: v.expiresAt
+		};
+	});
 var _user$project$Main$SightingOpportunity = F8(
 	function (a, b, c, d, e, f, g, h) {
 		return {title: a, description: b, date: c, time: d, duration: e, maximumElevation: f, approach: g, departure: h};
@@ -9172,7 +9115,6 @@ var _user$project$Main$LoadInfo = function (a) {
 	return {ctor: 'LoadInfo', _0: a};
 };
 var _user$project$Main$getSatelliteInfo = function (url) {
-	var $var = _elm_lang$core$Debug$log('HELLO');
 	return A2(
 		_elm_lang$http$Http$send,
 		_user$project$Main$LoadInfo,
@@ -9205,32 +9147,126 @@ var _user$project$Main$update = F2(
 							{
 								satelliteInfo: _elm_lang$core$Maybe$Just(_p4)
 							}),
-						_1: _elm_lang$core$Platform_Cmd$none
+						_1: _user$project$Main$store(_p4)
 					};
 				} else {
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Main',
 						{
-							start: {line: 113, column: 5},
-							end: {line: 128, column: 34}
+							start: {line: 108, column: 5},
+							end: {line: 123, column: 37}
 						},
-						_p3)('oh noes');
+						_p3)(
+						_elm_lang$core$Basics$toString(_p3._0._0));
 				}
 		}
 	});
-var _user$project$Main$main = _elm_lang$html$Html$program(
-	{
-		init: {
+var _user$project$Main$init = function (flags) {
+	var _p6 = flags;
+	if (_p6.ctor === 'Nothing') {
+		return {
 			ctor: '_Tuple2',
 			_0: _user$project$Main$initialModel,
 			_1: _user$project$Main$getSatelliteInfo(_user$project$Main$webtaskUrl)
-		},
+		};
+	} else {
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Native_Utils.update(
+				_user$project$Main$initialModel,
+				{satelliteInfo: flags}),
+			_1: _elm_lang$core$Platform_Cmd$none
+		};
+	}
+};
+var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
+	{
+		init: _user$project$Main$init,
 		update: _user$project$Main$update,
-		subscriptions: function (_p6) {
+		subscriptions: function (_p7) {
 			return _elm_lang$core$Platform_Sub$none;
 		},
 		view: _user$project$Main$mainView
-	})();
+	})(
+	_elm_lang$core$Json_Decode$oneOf(
+		{
+			ctor: '::',
+			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$core$Json_Decode$map,
+					_elm_lang$core$Maybe$Just,
+					A2(
+						_elm_lang$core$Json_Decode$andThen,
+						function (description) {
+							return A2(
+								_elm_lang$core$Json_Decode$andThen,
+								function (expiresAt) {
+									return A2(
+										_elm_lang$core$Json_Decode$andThen,
+										function (items) {
+											return A2(
+												_elm_lang$core$Json_Decode$andThen,
+												function (url) {
+													return _elm_lang$core$Json_Decode$succeed(
+														{description: description, expiresAt: expiresAt, items: items, url: url});
+												},
+												A2(_elm_lang$core$Json_Decode$field, 'url', _elm_lang$core$Json_Decode$string));
+										},
+										A2(
+											_elm_lang$core$Json_Decode$field,
+											'items',
+											_elm_lang$core$Json_Decode$list(
+												A2(
+													_elm_lang$core$Json_Decode$andThen,
+													function (approach) {
+														return A2(
+															_elm_lang$core$Json_Decode$andThen,
+															function (date) {
+																return A2(
+																	_elm_lang$core$Json_Decode$andThen,
+																	function (departure) {
+																		return A2(
+																			_elm_lang$core$Json_Decode$andThen,
+																			function (description) {
+																				return A2(
+																					_elm_lang$core$Json_Decode$andThen,
+																					function (duration) {
+																						return A2(
+																							_elm_lang$core$Json_Decode$andThen,
+																							function (maximumElevation) {
+																								return A2(
+																									_elm_lang$core$Json_Decode$andThen,
+																									function (time) {
+																										return A2(
+																											_elm_lang$core$Json_Decode$andThen,
+																											function (title) {
+																												return _elm_lang$core$Json_Decode$succeed(
+																													{approach: approach, date: date, departure: departure, description: description, duration: duration, maximumElevation: maximumElevation, time: time, title: title});
+																											},
+																											A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string));
+																									},
+																									A2(_elm_lang$core$Json_Decode$field, 'time', _elm_lang$core$Json_Decode$string));
+																							},
+																							A2(_elm_lang$core$Json_Decode$field, 'maximumElevation', _elm_lang$core$Json_Decode$string));
+																					},
+																					A2(_elm_lang$core$Json_Decode$field, 'duration', _elm_lang$core$Json_Decode$string));
+																			},
+																			A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string));
+																	},
+																	A2(_elm_lang$core$Json_Decode$field, 'departure', _elm_lang$core$Json_Decode$string));
+															},
+															A2(_elm_lang$core$Json_Decode$field, 'date', _elm_lang$core$Json_Decode$string));
+													},
+													A2(_elm_lang$core$Json_Decode$field, 'approach', _elm_lang$core$Json_Decode$string)))));
+								},
+								A2(_elm_lang$core$Json_Decode$field, 'expiresAt', _elm_lang$core$Json_Decode$int));
+						},
+						A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string))),
+				_1: {ctor: '[]'}
+			}
+		}));
 var _user$project$Main$FetchInfo = {ctor: 'FetchInfo'};
 var _user$project$Main$NoOp = {ctor: 'NoOp'};
 

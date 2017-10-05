@@ -1,11 +1,7 @@
-module Main exposing (..)
+port module Main exposing (..)
 
-import Html exposing (Html, div, text, h1, pre, dl, dt, dd)
+import Html exposing (Html, div, text, h1, h2, h3, pre, p)
 import Html.Attributes exposing (class)
-
-
---import Date exposing (Date)
-
 import Http
 import Json.Decode as Decode exposing (Decoder, field, succeed)
 
@@ -51,6 +47,9 @@ type alias Model =
     }
 
 
+port store : SatelliteInfo -> Cmd msg
+
+
 initialModel : Model
 initialModel =
     { state = ""
@@ -82,11 +81,7 @@ opportunityDecoder =
 
 getSatelliteInfo : String -> Cmd Msg
 getSatelliteInfo url =
-    let
-        var =
-            Debug.log ("HELLO")
-    in
-        Http.send LoadInfo (Http.get url satelliteInfoDecoder)
+    Http.send LoadInfo (Http.get url satelliteInfoDecoder)
 
 
 sortOpportunitiesByDay : List SightingOpportunity -> List SightingDayInfo
@@ -122,10 +117,10 @@ update msg model =
                 var =
                     Debug.log ("foo " ++ toString satelliteInfo)
             in
-                ( { model | satelliteInfo = Just satelliteInfo }, Cmd.none )
+                ( { model | satelliteInfo = Just satelliteInfo }, store satelliteInfo )
 
         LoadInfo (Err a) ->
-            Debug.crash "oh noes"
+            Debug.crash (toString a)
 
 
 mainView : Model -> Html Msg
@@ -160,25 +155,26 @@ sightingDayView ( date, opportunities ) =
 opportunityView : SightingOpportunity -> Html msg
 opportunityView opportunity =
     div [ class "opportunity" ]
-        [ dl []
-            [ dt [] [ text "Start Time" ]
-            , dd [] [ text opportunity.time ]
-            , dt [] [ text "Duration" ]
-            , dd [] [ text opportunity.duration ]
-            , dt [] [ text "Maximum Elevation" ]
-            , dd [] [ text opportunity.maximumElevation ]
-            , dt [] [ text "Approach" ]
-            , dd [] [ text opportunity.approach ]
-            , dt [] [ text "Departure" ]
-            , dd [] [ text opportunity.departure ]
-            ]
+        [ h2 [] [ text opportunity.time ]
+        , h3 [] [ text ("For " ++ opportunity.duration ++ " peaking at " ++ opportunity.maximumElevation) ]
+        , p [] [ text ("From " ++ opportunity.approach ++ " till " ++ opportunity.departure) ]
         ]
 
 
-main : Program Never Model Msg
+init : Maybe SatelliteInfo -> ( Model, Cmd Msg )
+init flags =
+    case flags of
+        Nothing ->
+            ( initialModel, getSatelliteInfo webtaskUrl )
+
+        Just info ->
+            ( { initialModel | satelliteInfo = flags }, Cmd.none )
+
+
+main : Program (Maybe SatelliteInfo) Model Msg
 main =
-    Html.program
-        { init = ( initialModel, getSatelliteInfo webtaskUrl )
+    Html.programWithFlags
+        { init = init
         , update = update
         , subscriptions = (\_ -> Sub.none)
         , view = mainView

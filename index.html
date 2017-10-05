@@ -29,8 +29,13 @@
 
   <script type="text/javascript" src="/elm.js"></script>
   <script type="text/javascript">
+    const state = localStorage.getItem('state');
     const root = document.getElementById('app');
-    const app = Elm.Main.embed(root);
+    const app = Elm.Main.embed(root, state && JSON.parse(state));
+
+    app.ports.store.subscribe(function(state) {
+      localStorage.setItem('state', JSON.stringify(state));
+    });
   </script>
 </body>
 </html>

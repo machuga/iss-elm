@@ -1,8 +1,10 @@
 port module Main exposing (..)
 
-import Html exposing (Html, div, text, h1, h2, h3, pre, p)
+import Html exposing (Html, div, text, h1, h2, h3, pre, p, span, select, option)
 import Html.Attributes exposing (class)
 import Http
+import Debug
+import Regex exposing (Regex, HowMany)
 import Json.Decode as Decode exposing (Decoder, field, succeed)
 
 
@@ -47,6 +49,15 @@ type alias Model =
     }
 
 
+type alias TimeTuple =
+    ( Int, TimeOfDay )
+
+
+type TimeOfDay
+    = Morning
+    | Night
+
+
 port store : SatelliteInfo -> Cmd msg
 
 
@@ -84,8 +95,8 @@ getSatelliteInfo url =
     Http.send LoadInfo (Http.get url satelliteInfoDecoder)
 
 
-sortOpportunitiesByDay : List SightingOpportunity -> List SightingDayInfo
-sortOpportunitiesByDay opportunities =
+groupOpportunitiesByDay : List SightingOpportunity -> List SightingDayInfo
+groupOpportunitiesByDay opportunities =
     let
         forDate date =
             List.filter (\o -> o.date == date) opportunities
@@ -101,6 +112,91 @@ sortOpportunitiesByDay opportunities =
             |> List.map .date
             |> List.foldr appendUnique []
             |> List.map (\date -> ( date, forDate date ))
+
+
+stringFromJust : Maybe String -> String
+stringFromJust value =
+    case value of
+        Just a ->
+            a
+
+        Nothing ->
+            ""
+
+
+hourTo24 : String -> TimeOfDay -> Int
+hourTo24 hourStr timeOfDay =
+    let
+        hour =
+            Result.withDefault 0 (String.toInt hourStr)
+    in
+        case timeOfDay of
+            Morning ->
+                if hour == 12 then
+                    0
+                else
+                    hour
+
+            Night ->
+                if hour == 12 then
+                    12
+                else
+                    hour + 12
+
+
+timeStringToTuple : String -> ( String, String, String )
+timeStringToTuple time =
+    let
+        timeRegex =
+            Regex.regex "(\\d?\\d):(\\d\\d)\\s(AM|PM)"
+
+        timeChunks =
+            (Regex.find (Regex.AtMost 1) timeRegex time)
+                |> List.concatMap .submatches
+                |> List.map stringFromJust
+    in
+        case timeChunks of
+            [] ->
+                ( "", "", "" )
+
+            hourStr :: [] ->
+                ( hourStr, "", "" )
+
+            hourStr :: minuteStr :: [] ->
+                ( hourStr, minuteStr, "" )
+
+            hourStr :: minuteStr :: meridiem :: _ ->
+                ( hourStr, minuteStr, meridiem )
+
+
+meridiemToTimeOfDay : String -> TimeOfDay
+meridiemToTimeOfDay meridiem =
+    if meridiem == "PM" then
+        Night
+    else
+        Morning
+
+
+splitTime : String -> TimeTuple
+splitTime time =
+    let
+        ( hourStr, minuteStr, meridiem ) =
+            timeStringToTuple time
+
+        timeOfDay =
+            meridiemToTimeOfDay meridiem
+
+        hour =
+            (hourTo24 hourStr timeOfDay) * 100
+
+        minute =
+            Result.withDefault 0 (String.toInt minuteStr)
+    in
+        ( hour + minute, timeOfDay )
+
+
+
+-- Update
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -125,7 +221,24 @@ update msg model =
 
 mainView : Model -> Html Msg
 mainView model =
-    div [] [ satelliteInfoView model.satelliteInfo ]
+    div []
+        [ --filterView model
+          satelliteInfoView model.satelliteInfo
+        ]
+
+
+filterView : Model -> Html Msg
+filterView model =
+    div []
+        [ p []
+            [ text "Filter"
+            , select []
+                [ option [] [ text "Mornings" ]
+                , option [] [ text "Nights" ]
+                , option [] [ text "Family Friendly" ]
+                ]
+            ]
+        ]
 
 
 satelliteInfoView : Maybe SatelliteInfo -> Html msg
@@ -134,7 +247,7 @@ satelliteInfoView satelliteInfo =
         Just satelliteInfo ->
             let
                 groupedOpps =
-                    sortOpportunitiesByDay satelliteInfo.items
+                    groupOpportunitiesByDay satelliteInfo.items
             in
                 div [] (List.map sightingDayView groupedOpps)
 
@@ -145,7 +258,7 @@ satelliteInfoView satelliteInfo =
 sightingDayView : SightingDayInfo -> Html msg
 sightingDayView ( date, opportunities ) =
     div [ class "sighting-day" ]
-        [ h1 [] [ text date ]
+        [ h1 [ class "sighting-date" ] [ text date ]
         , div
             [ class "opportunities" ]
             (List.map opportunityView opportunities)
@@ -154,11 +267,39 @@ sightingDayView ( date, opportunities ) =
 
 opportunityView : SightingOpportunity -> Html msg
 opportunityView opportunity =
-    div [ class "opportunity" ]
-        [ h2 [] [ text opportunity.time ]
-        , h3 [] [ text ("For " ++ opportunity.duration ++ " peaking at " ++ opportunity.maximumElevation) ]
-        , p [] [ text ("From " ++ opportunity.approach ++ " till " ++ opportunity.departure) ]
-        ]
+    let
+        ( time, timeOfDay ) =
+            splitTime opportunity.time
+    in
+        div [ class ("opportunity " ++ (toString timeOfDay |> String.toLower)) ]
+            [ h2 [] [ text (opportunity.time ++ (highElevationText opportunity.maximumElevation) ++ (idealTimeText time)) ]
+            , h3 [] [ text ("For " ++ opportunity.duration ++ " peaking at " ++ opportunity.maximumElevation) ]
+            , p [] [ text ("From " ++ opportunity.approach ++ " till " ++ opportunity.departure) ]
+            ]
+
+
+highElevationText : String -> String
+highElevationText elevationStr =
+    let
+        elevation =
+            elevationStr |> String.dropRight 1 |> String.toInt |> Result.withDefault 0
+    in
+        if elevation > 44 then
+            "★"
+        else
+            ""
+
+
+idealTimeText : Int -> String
+idealTimeText time =
+    let
+        x =
+            Debug.log "time" time
+    in
+        if time > 700 && time <= 1940 then
+            "👨\x200D👩\x200D👧\x200D👧"
+        else
+            ""
 
 
 init : Maybe SatelliteInfo -> ( Model, Cmd Msg )

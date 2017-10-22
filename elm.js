@@ -6142,6 +6142,126 @@ var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
 
+//import Maybe, Native.List //
+
+var _elm_lang$core$Native_Regex = function() {
+
+function escape(str)
+{
+	return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+function caseInsensitive(re)
+{
+	return new RegExp(re.source, 'gi');
+}
+function regex(raw)
+{
+	return new RegExp(raw, 'g');
+}
+
+function contains(re, string)
+{
+	return string.match(re) !== null;
+}
+
+function find(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var out = [];
+	var number = 0;
+	var string = str;
+	var lastIndex = re.lastIndex;
+	var prevLastIndex = -1;
+	var result;
+	while (number++ < n && (result = re.exec(string)))
+	{
+		if (prevLastIndex === re.lastIndex) break;
+		var i = result.length - 1;
+		var subs = new Array(i);
+		while (i > 0)
+		{
+			var submatch = result[i];
+			subs[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		out.push({
+			match: result[0],
+			submatches: _elm_lang$core$Native_List.fromArray(subs),
+			index: result.index,
+			number: number
+		});
+		prevLastIndex = re.lastIndex;
+	}
+	re.lastIndex = lastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+function replace(n, re, replacer, string)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	var count = 0;
+	function jsReplacer(match)
+	{
+		if (count++ >= n)
+		{
+			return match;
+		}
+		var i = arguments.length - 3;
+		var submatches = new Array(i);
+		while (i > 0)
+		{
+			var submatch = arguments[i];
+			submatches[--i] = submatch === undefined
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just(submatch);
+		}
+		return replacer({
+			match: match,
+			submatches: _elm_lang$core$Native_List.fromArray(submatches),
+			index: arguments[arguments.length - 2],
+			number: count
+		});
+	}
+	return string.replace(re, jsReplacer);
+}
+
+function split(n, re, str)
+{
+	n = n.ctor === 'All' ? Infinity : n._0;
+	if (n === Infinity)
+	{
+		return _elm_lang$core$Native_List.fromArray(str.split(re));
+	}
+	var string = str;
+	var result;
+	var out = [];
+	var start = re.lastIndex;
+	var restoreLastIndex = re.lastIndex;
+	while (n--)
+	{
+		if (!(result = re.exec(string))) break;
+		out.push(string.slice(start, result.index));
+		start = re.lastIndex;
+	}
+	out.push(string.slice(start));
+	re.lastIndex = restoreLastIndex;
+	return _elm_lang$core$Native_List.fromArray(out);
+}
+
+return {
+	regex: regex,
+	caseInsensitive: caseInsensitive,
+	escape: escape,
+
+	contains: F2(contains),
+	find: F3(find),
+	replace: F4(replace),
+	split: F3(split)
+};
+
+}();
+
 var _elm_lang$core$Tuple$mapSecond = F2(
 	function (func, _p0) {
 		var _p1 = _p0;
@@ -6168,6 +6288,23 @@ var _elm_lang$core$Tuple$first = function (_p6) {
 	var _p7 = _p6;
 	return _p7._0;
 };
+
+var _elm_lang$core$Regex$split = _elm_lang$core$Native_Regex.split;
+var _elm_lang$core$Regex$replace = _elm_lang$core$Native_Regex.replace;
+var _elm_lang$core$Regex$find = _elm_lang$core$Native_Regex.find;
+var _elm_lang$core$Regex$contains = _elm_lang$core$Native_Regex.contains;
+var _elm_lang$core$Regex$caseInsensitive = _elm_lang$core$Native_Regex.caseInsensitive;
+var _elm_lang$core$Regex$regex = _elm_lang$core$Native_Regex.regex;
+var _elm_lang$core$Regex$escape = _elm_lang$core$Native_Regex.escape;
+var _elm_lang$core$Regex$Match = F4(
+	function (a, b, c, d) {
+		return {match: a, submatches: b, index: c, number: d};
+	});
+var _elm_lang$core$Regex$Regex = {ctor: 'Regex'};
+var _elm_lang$core$Regex$AtMost = function (a) {
+	return {ctor: 'AtMost', _0: a};
+};
+var _elm_lang$core$Regex$All = {ctor: 'All'};
 
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
@@ -8918,97 +9055,127 @@ var _elm_lang$http$Http$StringPart = F2(
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
 
-var _user$project$Main$opportunityView = function (opportunity) {
+var _user$project$Main$idealTimeText = function (time) {
+	var x = A2(_elm_lang$core$Debug$log, 'time', time);
+	return ((_elm_lang$core$Native_Utils.cmp(time, 700) > 0) && (_elm_lang$core$Native_Utils.cmp(time, 1940) < 1)) ? '👨‍👩‍👧‍👧' : '';
+};
+var _user$project$Main$highElevationText = function (elevationStr) {
+	var elevation = A2(
+		_elm_lang$core$Result$withDefault,
+		0,
+		_elm_lang$core$String$toInt(
+			A2(_elm_lang$core$String$dropRight, 1, elevationStr)));
+	return (_elm_lang$core$Native_Utils.cmp(elevation, 44) > 0) ? '★' : '';
+};
+var _user$project$Main$filterView = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('opportunity'),
-			_1: {ctor: '[]'}
-		},
+		{ctor: '[]'},
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$h2,
+				_elm_lang$html$Html$p,
 				{ctor: '[]'},
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html$text(opportunity.time),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$h3,
-					{ctor: '[]'},
-					{
+					_0: _elm_lang$html$Html$text('Filter'),
+					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html$text(
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								'For ',
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									opportunity.duration,
-									A2(_elm_lang$core$Basics_ops['++'], ' peaking at ', opportunity.maximumElevation)))),
+						_0: A2(
+							_elm_lang$html$Html$select,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$option,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Mornings'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$option,
+										{ctor: '[]'},
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Nights'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$option,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Family Friendly'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}
+							}),
 						_1: {ctor: '[]'}
-					}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$p,
-						{ctor: '[]'},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'From ',
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										opportunity.approach,
-										A2(_elm_lang$core$Basics_ops['++'], ' till ', opportunity.departure)))),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-};
-var _user$project$Main$sightingDayView = function (_p0) {
-	var _p1 = _p0;
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('sighting-day'),
+					}
+				}),
 			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$h1,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text(_p1._0),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('opportunities'),
-						_1: {ctor: '[]'}
-					},
-					A2(_elm_lang$core$List$map, _user$project$Main$opportunityView, _p1._1)),
-				_1: {ctor: '[]'}
-			}
 		});
 };
-var _user$project$Main$sortOpportunitiesByDay = function (opportunities) {
+var _user$project$Main$hourTo24 = F2(
+	function (hourStr, timeOfDay) {
+		var hour = A2(
+			_elm_lang$core$Result$withDefault,
+			0,
+			_elm_lang$core$String$toInt(hourStr));
+		var _p0 = timeOfDay;
+		if (_p0.ctor === 'Morning') {
+			return _elm_lang$core$Native_Utils.eq(hour, 12) ? 0 : hour;
+		} else {
+			return _elm_lang$core$Native_Utils.eq(hour, 12) ? 12 : (hour + 12);
+		}
+	});
+var _user$project$Main$stringFromJust = function (value) {
+	var _p1 = value;
+	if (_p1.ctor === 'Just') {
+		return _p1._0;
+	} else {
+		return '';
+	}
+};
+var _user$project$Main$timeStringToTuple = function (time) {
+	var timeRegex = _elm_lang$core$Regex$regex('(\\d?\\d):(\\d\\d)\\s(AM|PM)');
+	var timeChunks = A2(
+		_elm_lang$core$List$map,
+		_user$project$Main$stringFromJust,
+		A2(
+			_elm_lang$core$List$concatMap,
+			function (_) {
+				return _.submatches;
+			},
+			A3(
+				_elm_lang$core$Regex$find,
+				_elm_lang$core$Regex$AtMost(1),
+				timeRegex,
+				time)));
+	var _p2 = timeChunks;
+	if (_p2.ctor === '[]') {
+		return {ctor: '_Tuple3', _0: '', _1: '', _2: ''};
+	} else {
+		if (_p2._1.ctor === '[]') {
+			return {ctor: '_Tuple3', _0: _p2._0, _1: '', _2: ''};
+		} else {
+			if (_p2._1._1.ctor === '[]') {
+				return {ctor: '_Tuple3', _0: _p2._0, _1: _p2._1._0, _2: ''};
+			} else {
+				return {ctor: '_Tuple3', _0: _p2._0, _1: _p2._1._0, _2: _p2._1._1._0};
+			}
+		}
+	}
+};
+var _user$project$Main$groupOpportunitiesByDay = function (opportunities) {
 	var appendUnique = F2(
 		function (date, list) {
 			return A2(_elm_lang$core$List$member, date, list) ? list : {ctor: '::', _0: date, _1: list};
@@ -9040,28 +9207,6 @@ var _user$project$Main$sortOpportunitiesByDay = function (opportunities) {
 					return _.date;
 				},
 				opportunities)));
-};
-var _user$project$Main$satelliteInfoView = function (satelliteInfo) {
-	var _p2 = satelliteInfo;
-	if (_p2.ctor === 'Just') {
-		var groupedOpps = _user$project$Main$sortOpportunitiesByDay(_p2._0.items);
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			A2(_elm_lang$core$List$map, _user$project$Main$sightingDayView, groupedOpps));
-	} else {
-		return _elm_lang$html$Html$text('');
-	}
-};
-var _user$project$Main$mainView = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{ctor: '[]'},
-		{
-			ctor: '::',
-			_0: _user$project$Main$satelliteInfoView(model.satelliteInfo),
-			_1: {ctor: '[]'}
-		});
 };
 var _user$project$Main$initialModel = {state: '', satelliteInfo: _elm_lang$core$Maybe$Nothing};
 var _user$project$Main$webtaskUrl = 'https://wt-8f9f6a577da77a9add9cadbb90e66b75-0.run.webtask.io/iss-tracker';
@@ -9153,8 +9298,8 @@ var _user$project$Main$update = F2(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Main',
 						{
-							start: {line: 108, column: 5},
-							end: {line: 123, column: 37}
+							start: {line: 204, column: 5},
+							end: {line: 219, column: 37}
 						},
 						_p3)(
 						_elm_lang$core$Basics$toString(_p3._0._0));
@@ -9179,11 +9324,162 @@ var _user$project$Main$init = function (flags) {
 		};
 	}
 };
+var _user$project$Main$FetchInfo = {ctor: 'FetchInfo'};
+var _user$project$Main$NoOp = {ctor: 'NoOp'};
+var _user$project$Main$Night = {ctor: 'Night'};
+var _user$project$Main$Morning = {ctor: 'Morning'};
+var _user$project$Main$meridiemToTimeOfDay = function (meridiem) {
+	return _elm_lang$core$Native_Utils.eq(meridiem, 'PM') ? _user$project$Main$Night : _user$project$Main$Morning;
+};
+var _user$project$Main$splitTime = function (time) {
+	var _p7 = _user$project$Main$timeStringToTuple(time);
+	var hourStr = _p7._0;
+	var minuteStr = _p7._1;
+	var meridiem = _p7._2;
+	var timeOfDay = _user$project$Main$meridiemToTimeOfDay(meridiem);
+	var hour = A2(_user$project$Main$hourTo24, hourStr, timeOfDay) * 100;
+	var minute = A2(
+		_elm_lang$core$Result$withDefault,
+		0,
+		_elm_lang$core$String$toInt(minuteStr));
+	return {ctor: '_Tuple2', _0: hour + minute, _1: timeOfDay};
+};
+var _user$project$Main$opportunityView = function (opportunity) {
+	var _p8 = _user$project$Main$splitTime(opportunity.time);
+	var time = _p8._0;
+	var timeOfDay = _p8._1;
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'opportunity ',
+					_elm_lang$core$String$toLower(
+						_elm_lang$core$Basics$toString(timeOfDay)))),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h2,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							opportunity.time,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_user$project$Main$highElevationText(opportunity.maximumElevation),
+								_user$project$Main$idealTimeText(time)))),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$h3,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								'For ',
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									opportunity.duration,
+									A2(_elm_lang$core$Basics_ops['++'], ' peaking at ', opportunity.maximumElevation)))),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$p,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'From ',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										opportunity.approach,
+										A2(_elm_lang$core$Basics_ops['++'], ' till ', opportunity.departure)))),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$Main$sightingDayView = function (_p9) {
+	var _p10 = _p9;
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('sighting-day'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$h1,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('sighting-date'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(_p10._0),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('opportunities'),
+						_1: {ctor: '[]'}
+					},
+					A2(_elm_lang$core$List$map, _user$project$Main$opportunityView, _p10._1)),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$satelliteInfoView = function (satelliteInfo) {
+	var _p11 = satelliteInfo;
+	if (_p11.ctor === 'Just') {
+		var groupedOpps = _user$project$Main$groupOpportunitiesByDay(_p11._0.items);
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(_elm_lang$core$List$map, _user$project$Main$sightingDayView, groupedOpps));
+	} else {
+		return _elm_lang$html$Html$text('');
+	}
+};
+var _user$project$Main$mainView = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: _user$project$Main$satelliteInfoView(model.satelliteInfo),
+			_1: {ctor: '[]'}
+		});
+};
 var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 	{
 		init: _user$project$Main$init,
 		update: _user$project$Main$update,
-		subscriptions: function (_p7) {
+		subscriptions: function (_p12) {
 			return _elm_lang$core$Platform_Sub$none;
 		},
 		view: _user$project$Main$mainView
@@ -9267,8 +9563,6 @@ var _user$project$Main$main = _elm_lang$html$Html$programWithFlags(
 				_1: {ctor: '[]'}
 			}
 		}));
-var _user$project$Main$FetchInfo = {ctor: 'FetchInfo'};
-var _user$project$Main$NoOp = {ctor: 'NoOp'};
 
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};

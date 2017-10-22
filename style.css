@@ -2,6 +2,7 @@ html, body {
   font-family: "San Francisco", "Hevetica Neue", "Arial", "sans-serif";
   color: #333;
   font-size: 16px;
+  margin: 0;
 }
 
 .container {
@@ -16,6 +17,32 @@ html, body {
   align-items: stretch;
 }
 
+.sighting-day .sighting-date {
+  padding: 0 1rem;
+}
+
+.site-header, .site-footer {
+  padding: 2rem 1rem;
+}
+
+.site-header {
+  border-bottom: 1px solid #333;
+}
+
+.site-footer {
+  color: #999
+}
+
 .opportunity {
   flex: 1;
+  padding: 1rem 1rem 2rem 1rem;
+}
+
+.morning {
+  background-color: #ffffe0;
+}
+
+.night {
+  background-color: #28353D;
+  color: white;
 }
